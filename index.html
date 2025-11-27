@@ -485,8 +485,22 @@
         }
 
         // 启动
+        init();// ... 原有代码 ...
+
+        // 启动 App
         init();
+
+        // [新增] 注册 PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('SW Registered'))
+                .catch(err => console.log('SW Fail:', err));
+        }
+    </script>
+</body>
+</html>
 
     </script>
 </body>
 </html>
+
