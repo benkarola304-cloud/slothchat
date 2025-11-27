@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#76A665">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>SlothDrop P2P</title>
+    <title>SlothDrop P2P Fix</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3750/3750019.png">
@@ -26,6 +26,7 @@
             --grey: #95A5A6;
             --bubble-self: #76A665;
             --bubble-friend: #FFFFFF;
+            --error: #E74C3C;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -116,6 +117,9 @@
         .transfer-item.sending { border-left-color: #3498DB; }
         .transfer-item.receiving { border-left-color: #F1C40F; }
         .transfer-item.done { border-left-color: var(--primary); background: #fff; border: 1px solid #eee; border-left: 5px solid var(--primary); }
+        /* 新增错误状态样式 */
+        .transfer-item.error { border-left-color: var(--error); background: #FFF5F5; }
+        .transfer-item.error .t-meta { color: var(--error); }
         
         .t-info { flex: 1; overflow: hidden; }
         .t-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -172,6 +176,7 @@
         }
         .msg.self { align-self: flex-end; background: var(--bubble-self); color: white; border-bottom-right-radius: 2px; }
         .msg.friend { align-self: flex-start; background: var(--bubble-friend); color: #333; border-bottom-left-radius: 2px; }
+        .msg.error-msg { background: var(--error); color: white; }
         
         .chat-footer {
             padding: 10px; background: #FFF; border-top: 1px solid #EEE;
@@ -293,7 +298,6 @@
 
         // --- 1. Initialization & ID Persistence ---
         function init() {
-            // 尝试恢复 ID
             let storedId = localStorage.getItem('sloth_id');
             if (!storedId) {
                 storedId = App.prefix + Math.random().toString(36).substr(2, 5);
@@ -302,13 +306,11 @@
             App.id = storedId;
             UI.myId.innerText = App.id;
 
-            // 初始化二维码
             new QRCode(document.getElementById("qrcode"), { 
                 text: App.id, width: 80, height: 80, 
                 colorDark: "#2C3E50", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M 
             });
 
-            // 初始化 PeerJS
             App.peer = new Peer(App.id, { debug: 1 });
             
             App.peer.on('open', (id) => {
@@ -321,7 +323,6 @@
             App.peer.on('error', (err) => {
                 console.error(err);
                 if(err.type === 'unavailable-id') {
-                    // ID 冲突处理：重置 ID
                     localStorage.removeItem('sloth_id');
                     location.reload();
                 } else {
@@ -331,7 +332,6 @@
                 }
             });
 
-            // Wake Lock (防止手机黑屏断网)
             if ('wakeLock' in navigator) {
                 navigator.wakeLock.request('screen').catch(console.error);
             }
@@ -344,23 +344,20 @@
             if(id === App.id) return showToast("Cannot connect to self");
 
             UI.status.innerText = "Connecting...";
-            const conn = App.peer.connect(id, { reliable: true });
+            // 使用 reliable: true 尝试建立更稳定的连接
+            const conn = App.peer.connect(id, { reliable: true, serialization: 'binary' });
             handleConnection(conn);
         }
 
         function handleConnection(conn) {
-            // 如果已有连接，先关闭旧的
             if (App.conn && App.conn.open) {
                 App.conn.close();
             }
-
             App.conn = conn;
 
             conn.on('open', () => {
                 UI.status.innerText = "Connected to " + conn.peer;
                 UI.status.className = "status-tag connected";
-                
-                // 切换界面
                 UI.cardConnect.style.display = 'none';
                 UI.cardTransfer.style.display = 'block';
                 UI.fab.style.display = 'flex';
@@ -371,52 +368,51 @@
                 UI.status.innerText = "Disconnected";
                 UI.status.className = "status-tag error";
                 showToast("Peer disconnected");
+                // 连接断开时，清理未完成的队列
+                App.queue.forEach(job => markTransferError(job.id, "Connection dropped"));
+                App.queue = [];
+                App.isSending = false;
                 setTimeout(() => location.reload(), 2000);
             });
 
             conn.on('data', onDataReceived);
         }
 
-        // --- 3. Receiving Logic (State Machine) ---
+        // --- 3. Receiving Logic ---
         let rx = { buffer: [], received: 0, meta: null, id: null, start: 0, lastUpdate: 0 };
 
         function onDataReceived(data) {
-            // A. Binary Chunk
             if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
                 if (!rx.meta) return;
-                
-                rx.buffer.push(data); // 注意：这里还是存内存，大文件建议改用流式
+                rx.buffer.push(data); 
                 rx.received += data.byteLength;
-
                 const now = Date.now();
                 if (now - rx.lastUpdate > 200 || rx.received === rx.meta.size) {
                     updateProgress(rx.id, rx.received, rx.meta.size, rx.start);
                     rx.lastUpdate = now;
                 }
             }
-            // B. Signaling
             else if (data.type) {
                 switch (data.type) {
                     case 'header':
                         rx = { buffer: [], received: 0, meta: data, id: data.id, start: Date.now(), lastUpdate: 0 };
                         createTransferItem(data.id, data.name, 'receiving', data.mode);
+                        // 关键：收到头信息后，发送 ACK 确认
                         App.conn.send({ type: 'ack', id: data.id });
                         break;
-
                     case 'ack':
+                        // 发送端收到 ACK，解除等待
                         if (App.pendingAckResolve) {
                             App.pendingAckResolve();
                             App.pendingAckResolve = null;
                         }
                         break;
-
                     case 'end':
                         const blob = new Blob(rx.buffer, { type: rx.meta.mime });
                         const url = URL.createObjectURL(blob);
                         finishTransferItem(rx.id, url, rx.meta.name, rx.meta.mime, 'in', rx.meta.mode);
-                        rx.buffer = []; // GC
+                        rx.buffer = []; 
                         break;
-
                     case 'chat':
                         appendChatMsg(data.text, 'friend');
                         if (!UI.chatModal.classList.contains('active')) {
@@ -428,10 +424,11 @@
             }
         }
 
-        // --- 4. Sending Logic (Queue + Flow Control) ---
+        // --- 4. Sending Logic (修复了卡住问题) ---
         function enqueueFiles(files, mode) {
             Array.from(files).forEach(f => {
                 const id = Date.now() + Math.random().toString(16).slice(2);
+                // 先在 UI 上显示“等待中”
                 createTransferItem(id, f.name, 'sending', mode);
                 App.queue.push({ file: f, id: id, mode: mode });
             });
@@ -440,36 +437,54 @@
 
         async function processQueue() {
             if (App.isSending || App.queue.length === 0) return;
-            if (!App.conn || !App.conn.open) return showToast("Connection lost");
-
+            
             App.isSending = true;
-            const job = App.queue.shift();
+            const job = App.queue.shift(); // 取出当前任务
+
+            // 修复点1：在尝试发送前检查连接。如果失败，标记当前任务为错误。
+            if (!App.conn || !App.conn.open) {
+                markTransferError(job.id, "Connection lost before send");
+                App.isSending = false;
+                processQueue(); // 尝试下一个
+                return;
+            }
 
             // 1. Send Header
-            App.conn.send({ 
-                type: 'header', name: job.file.name, size: job.file.size, 
-                mime: job.file.type, id: job.id, mode: job.mode 
-            });
+            try {
+                App.conn.send({ 
+                    type: 'header', name: job.file.name, size: job.file.size, 
+                    mime: job.file.type, id: job.id, mode: job.mode 
+                });
+            } catch (e) {
+                markTransferError(job.id, "Failed to send header");
+                App.isSending = false;
+                processQueue();
+                return;
+            }
 
-            // 2. Wait for ACK
+            // 2. Wait for ACK (设置 8 秒超时)
             try {
                 await new Promise((resolve, reject) => {
                     App.pendingAckResolve = resolve;
-                    setTimeout(() => reject("Timeout"), 10000);
+                    // 修复点2：超时后拒绝 Promise
+                    setTimeout(() => reject("ACK Timeout"), 8000); 
                 });
             } catch (e) {
-                showToast("Transfer timed out");
+                // 修复点3：捕获超时，标记任务错误，而不是卡住
+                showToast("Transfer timed out (No response from receiver)");
+                markTransferError(job.id, "Timed out waiting for acceptance");
                 App.isSending = false;
-                return; // Stop queue
+                App.pendingAckResolve = null;
+                processQueue(); // 处理队列中的下一个文件
+                return; 
             }
 
-            // 3. Send Chunks
+            // 3. Send Chunks (切片发送)
             const fileReader = new FileReader();
             let offset = 0;
             const start = Date.now();
             let lastUpdate = 0;
 
-            // 循环读取并发送
             const readSlice = (o) => new Promise(resolve => {
                 const slice = job.file.slice(o, o + App.chunkSize);
                 fileReader.onload = e => resolve(e.target.result);
@@ -477,14 +492,15 @@
             });
 
             while (offset < job.file.size) {
-                // Backpressure Check
+                if (!App.conn.open) break; // 传输中途断开检查
+                // 背压控制：如果对方处理不过来，暂停发送
                 if (App.conn.dataChannel.bufferedAmount > App.maxBuffer) {
-                    await new Promise(r => setTimeout(r, 10)); // Wait for buffer to clear
+                    await new Promise(r => setTimeout(r, 20));
                     continue;
                 }
 
                 const buffer = await readSlice(offset);
-                App.conn.send(buffer); // Send ArrayBuffer directly
+                App.conn.send(buffer); 
                 offset += buffer.byteLength;
 
                 const now = Date.now();
@@ -494,11 +510,13 @@
                 }
             }
 
-            // 4. Send End
-            App.conn.send({ type: 'end' });
-            
-            // Local finish
-            finishTransferItem(job.id, null, job.file.name, job.file.type, 'out', job.mode);
+            if (App.conn.open) {
+                // 4. Send End
+                App.conn.send({ type: 'end' });
+                finishTransferItem(job.id, null, job.file.name, job.file.type, 'out', job.mode);
+            } else {
+                markTransferError(job.id, "Connection disconnected during transfer");
+            }
 
             App.isSending = false;
             setTimeout(processQueue, 100); // Next
@@ -528,7 +546,7 @@
                     <div style="min-width:140px">
                         <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">📄 ${name}</div>
                         <div class="t-bar" style="background:rgba(0,0,0,0.1);"><div class="t-fill" style="width:0%; background:rgba(255,255,255,0.9);"></div></div>
-                        <div class="t-meta" style="font-size:0.7rem; text-align:right; opacity:0.8; margin-top:2px;">0%</div>
+                        <div class="t-meta" style="font-size:0.7rem; text-align:right; opacity:0.8; margin-top:2px;">Waiting...</div>
                     </div>
                 `;
                 UI.chatMsgs.appendChild(div);
@@ -555,8 +573,22 @@
             }
         }
 
+        // 新增：标记错误状态的函数
+        function markTransferError(id, errMsg) {
+            const elMain = document.getElementById(`item-${id}`);
+            if (elMain) {
+                elMain.classList.add('error');
+                elMain.querySelector('.t-bar').style.display = 'none';
+                elMain.querySelector('.t-meta').innerHTML = `<span style="color:var(--error)">❌ ${errMsg}</span>`;
+            }
+            const elBubble = document.getElementById(`bubble-${id}`);
+            if (elBubble) {
+                elBubble.classList.add('error-msg');
+                elBubble.innerHTML = `<div>❌ Error: ${errMsg}</div>`;
+            }
+        }
+
         function finishTransferItem(id, url, name, mime, dir, mode) {
-            // Main List Update
             const elMain = document.getElementById(`item-${id}`);
             if (elMain) {
                 elMain.classList.add('done');
@@ -570,11 +602,9 @@
                 }
             }
             
-            // Chat Bubble Update
             const elBubble = document.getElementById(`bubble-${id}`);
             if (elBubble) {
                 if (mime.startsWith('image/')) {
-                    const src = dir === 'in' ? url : URL.createObjectURL(App.queue.find(q=>q.id===id)?.file || new Blob()); // Self preview tricky without storing
                     elBubble.innerHTML = dir === 'in' 
                         ? `<img src="${url}" style="max-width:200px; border-radius:10px; display:block;">` 
                         : `<div style="opacity:0.8">✅ Image Sent: ${name}</div>`;
@@ -596,16 +626,14 @@
         };
         const copyId = () => { navigator.clipboard.writeText(App.id); showToast("ID Copied"); };
 
-        // Events
         UI.dropZone.onclick = () => document.getElementById('file-input').click();
         document.getElementById('file-input').onchange = (e) => enqueueFiles(e.target.files, 'main');
         document.getElementById('chat-file-input').onchange = (e) => enqueueFiles(e.target.files, 'chat');
 
-        // Chat
         function sendText() {
             const input = document.getElementById('chat-input');
             const txt = input.value.trim();
-            if(!txt || !App.conn) return;
+            if(!txt || !App.conn || !App.conn.open) return showToast("Not connected");
             App.conn.send({ type: 'chat', text: txt });
             appendChatMsg(txt, 'self');
             input.value = "";
@@ -618,11 +646,9 @@
             UI.chatMsgs.scrollTop = UI.chatMsgs.scrollHeight;
         }
 
-        // Chat Modal Control
         window.openChat = () => { UI.chatModal.classList.add('active'); UI.chatBadge.style.display='none'; };
         window.closeChat = () => { UI.chatModal.classList.remove('active'); };
 
-        // Drag & Drop
         window.addEventListener('dragover', e => e.preventDefault());
         window.addEventListener('drop', e => e.preventDefault());
         UI.dropZone.addEventListener('dragover', () => UI.dropZone.classList.add('drag-over'));
@@ -632,7 +658,6 @@
             if(e.dataTransfer.files.length) enqueueFiles(e.dataTransfer.files, 'main');
         });
 
-        // Scanner
         let html5QrCode;
         window.startScan = () => {
             document.getElementById('scanner-layer').style.display = 'block';
@@ -649,10 +674,7 @@
             document.getElementById('scanner-layer').style.display = 'none';
         };
 
-        // Start App
         init();
-
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(console.error);
         }
