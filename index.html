@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#F7F9F7">
-    <title>MochiDrop 🦥</title>
+    <title>MochiDrop 🦥 V6.0</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3750/3750019.png">
@@ -23,13 +23,13 @@
         .navbar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: rgba(247,249,247,0.95); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 1px 0 rgba(0,0,0,0.05); }
         .navbar-title { font-family: 'Fredoka One', cursive; color: var(--primary); font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
         .card { width: 90%; max-width: 420px; background: #FFF; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card-label { font-size: 0.75rem; color: var(--grey); font-weight: 700; letter-spacing: 1px; margin-bottom: 15px; display: block; }
+        .card-label { font-size: 0.75rem; color: var(--grey); font-weight: 700; letter-spacing: 1px; margin-bottom: 15px; display: block; text-align: left; }
         
         /* 身份 & 连接 */
         .identity-row { display: flex; align-items: center; gap: 15px; }
         .qr-box { width: 90px; height: 90px; background: #F0F2F0; border-radius: 12px; padding: 5px; }
         #qrcode img { width: 100%; display: block; }
-        .id-text { font-family: monospace; font-size: 1.1rem; font-weight: 700; }
+        .id-text { font-family: monospace; font-size: 1.1rem; font-weight: 700; word-break: break-all;}
         .status-dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .status-dot.online { background: var(--primary); animation: pulse 2s infinite; }
         
@@ -37,19 +37,18 @@
         input { flex: 1; border: none; background: transparent; padding: 10px; font-size: 1rem; outline: none; text-align: center; }
         .btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; }
         
-        /* 核心传输列表 (主界面) */
-        .upload-area { border: 2px dashed #C1D1BE; border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; background: #FAFCFA; transition: 0.3s; }
+        /* 核心传输列表 */
+        .upload-area { border: 2px dashed #C1D1BE; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; background: #FAFCFA; transition: 0.3s; }
         .upload-area.drag-over { background: #E8F5E9; border-color: var(--primary); transform: scale(1.02); }
         
         .file-list { list-style: none; padding: 0; margin: 15px 0; max-height: 400px; overflow-y: auto; }
         .file-item { background: #FFF; border: 1px solid #EEE; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
-        .file-icon { font-size: 1.5rem; }
         .file-info { flex: 1; overflow: hidden; }
-        .file-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align:left;}
         .file-meta { font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; margin-top: 4px; font-family: monospace; }
         .progress-bg { height: 4px; background: #EEE; border-radius: 2px; margin-top: 6px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.2s; }
-        .file-action { font-size: 1.2rem; cursor: pointer; padding: 5px; color: var(--primary); }
+        .file-action { font-size: 1.2rem; cursor: pointer; padding: 5px; color: var(--primary); text-decoration: none;}
 
         /* 聊天窗口 */
         #fab-chat { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; color: white; border: none; font-size: 1.8rem; box-shadow: 0 5px 20px rgba(118,166,101,0.4); display: none; align-items: center; justify-content: center; z-index: 2000; cursor: pointer; }
@@ -58,19 +57,14 @@
         .chat-box { width: 100%; max-width: 500px; height: 85vh; background: #F2F4F2; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; overflow: hidden; }
         .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         
-        /* 聊天气泡 */
         .msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; word-break: break-word; position: relative; }
         .msg.self { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
         .msg.friend { align-self: flex-start; background: #FFF; color: #333; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        
-        /* 聊天内文件/图片 */
+        .msg-img { max-width: 200px; border-radius: 12px; cursor: zoom-in; display: block; background: #eee; margin-top: 5px;}
         .bubble-file { display: flex; flex-direction: column; min-width: 180px; }
-        .bubble-img { max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: zoom-in; display: block; min-height: 50px; background: rgba(0,0,0,0.05); }
         .bubble-progress { height: 4px; background: rgba(0,0,0,0.1); margin-top: 5px; border-radius: 2px; overflow: hidden; }
         .bubble-fill { height: 100%; width: 0%; background: rgba(255,255,255,0.8); transition: width 0.2s; }
         .msg.friend .bubble-fill { background: var(--primary); }
-        .bubble-meta { font-size: 0.7rem; margin-top: 3px; opacity: 0.8; text-align: right; }
-
         .chat-footer { padding: 10px; background: #FFF; border-top: 1px solid #EEE; display: flex; gap: 10px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; background: #F5F5F5; border: none; border-radius: 20px; font-size: 1rem; outline: none; }
         .icon-btn { font-size: 1.2rem; cursor: pointer; background: none; border: none; padding: 5px; }
@@ -81,7 +75,6 @@
         #reader { width: 100%; height: 100%; }
         #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; align-items: center; justify-content: center; }
         #lightbox img { max-width: 95%; max-height: 95%; border-radius: 5px; }
-        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
@@ -90,9 +83,7 @@
     <audio id="silent-audio" loop><source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//oeAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD//////////////////////////////////////////////////////////////////wAAAP//OgAAAAAAAABMYXZjNTguMTM0LjEwMAAAAAAAAAAAAAAA//oeAAAAAAABIAAAAAAAAAAAAAAA//oeAAAAAAAAAAAAAAAAAAAAAAA=" type="audio/mpeg"></audio>
 
     <div class="navbar">
-        <div class="navbar-title">
-            <img src="https://cdn-icons-png.flaticon.com/512/3750/3750019.png" width="30"> SlothDrop
-        </div>
+        <div class="navbar-title"><img src="https://cdn-icons-png.flaticon.com/512/3750/3750019.png" width="30"> SlothDrop</div>
     </div>
 
     <div class="card" id="identity-panel">
@@ -118,11 +109,11 @@
     </div>
 
     <div class="card" id="transfer-panel" style="display:none;">
-        <span class="card-label">FILE TRANSFER (MAIN)</span>
+        <span class="card-label">TRANSFER (MAIN)</span>
         
         <label class="upload-area" id="drop-zone">
             <div style="font-size:2rem; margin-bottom:10px;">📂</div>
-            <div>Click or Drag Files Here</div>
+            <div>Click or Drag Files/Folders</div>
         </label>
         <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this.files, 'main')">
         
@@ -157,12 +148,13 @@
     </div>
 
     <script>
-        // --- V5.0 Titanium Core ---
+        // --- V6.0 核心配置 ---
         let peer, conn;
-        const CHUNK_SIZE = 16 * 1024; // 16KB 黄金稳定值
+        const CHUNK_SIZE = 16 * 1024; 
         const MAX_BUFFER = 64 * 1024;
         let fileQueue = [];
         let isSending = false;
+        let pendingAcks = {}; // 存储等待ACK的发送任务
 
         const ui = {
             id: document.getElementById('my-id'),
@@ -171,7 +163,9 @@
             mainList: document.getElementById('main-file-list'),
             chatBody: document.getElementById('chat-body'),
             toast: document.getElementById('toast'),
-            modal: document.getElementById('chat-modal')
+            modal: document.getElementById('chat-modal'),
+            dropZone: document.getElementById('drop-zone'),
+            chatInput: document.getElementById('chat-input')
         };
 
         // 1. 初始化
@@ -206,11 +200,11 @@
             conn.on('data', handleData);
         }
 
-        // 2. 统一数据处理 (Strict Mode)
+        // 2. 统一数据处理 (增加 ACK 处理)
         let rx = { buf: [], size: 0, meta: null, id: null, start: 0, lastUp: 0 };
 
         function handleData(data) {
-            // Binary Chunk
+            // A. 二进制数据 (文件内容)
             if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
                 if (!rx.meta) return;
                 const chunk = new Uint8Array(data);
@@ -218,33 +212,50 @@
                 rx.size += chunk.byteLength;
                 
                 const now = Date.now();
-                if (now - rx.lastUp > 500 || rx.size === rx.meta.size) {
+                if (now - rx.lastUp > 200 || rx.size === rx.meta.size) {
                     const speed = calcSpeed(rx.size, rx.start);
                     const pct = Math.floor((rx.size / rx.meta.size) * 100);
                     updateUI(rx.id, pct, speed, rx.meta.mode, true);
                     rx.lastUp = now;
                 }
             } 
-            // Control
-            else if (data.type === 'header') {
-                rx.buf = []; rx.size = 0; rx.meta = data; rx.id = data.id; rx.start = Date.now();
-                createUI(data.id, data.name, data.size, data.mode, 'in'); // Force Create UI
-                // Auto open chat if needed
-                if(data.mode === 'chat' && !ui.modal.classList.contains('visible')) showToast("New Message!");
-            }
-            else if (data.type === 'end') {
-                const blob = new Blob(rx.buf, { type: rx.meta.mime });
-                const url = URL.createObjectURL(blob);
-                finishUI(rx.id, url, rx.meta.name, rx.meta.mime, rx.meta.mode, 'in');
-                rx.meta = null; rx.buf = [];
-            }
-            else if (data.type === 'chat') {
-                addChatMsg(data.text, 'friend');
-                if(!ui.modal.classList.contains('visible')) showToast("New Message!");
+            // B. 控制信令
+            else if (data.type) {
+                if (data.type === 'header') {
+                    // 1. 收到头，重置接收器
+                    rx.buf = []; rx.size = 0; rx.meta = data; rx.id = data.id; rx.start = Date.now();
+                    
+                    // 2. 创建接收 UI
+                    createUI(data.id, data.name, data.size, data.mode, 'in');
+                    if(data.mode === 'chat' && !ui.modal.classList.contains('visible')) showToast("New File!");
+                    
+                    // 3. 关键：发送 ACK 确认，告诉发送方“我准备好了”
+                    conn.send({ type: 'ack', id: data.id });
+                    
+                    requestWakeLock();
+                }
+                else if (data.type === 'ack') {
+                    // 发送方收到 ACK，开始推流
+                    if (pendingAcks[data.id]) {
+                        pendingAcks[data.id](); // 执行 resolve
+                        delete pendingAcks[data.id];
+                    }
+                }
+                else if (data.type === 'end') {
+                    // 接收完成
+                    const blob = new Blob(rx.buf, { type: rx.meta.mime });
+                    const url = URL.createObjectURL(blob);
+                    finishUI(rx.id, url, rx.meta.name, rx.meta.mime, rx.meta.mode, 'in');
+                    rx.buf = []; rx.meta = null; releaseWakeLock();
+                }
+                else if (data.type === 'chat') {
+                    addChatMsg(data.text, 'friend');
+                    if(!ui.modal.classList.contains('visible')) showToast("New Message!");
+                }
             }
         }
 
-        // 3. 统一发送核心
+        // 3. 统一发送核心 (带 ACK 握手)
         function handleFiles(files, mode) {
             for (let f of files) {
                 const id = Date.now() + Math.random().toString(16).slice(2);
@@ -259,8 +270,18 @@
             isSending = true;
             const job = fileQueue.shift();
             
+            // 1. 发送头
             conn.send({ type: 'header', name: job.file.name, size: job.file.size, mime: job.file.type, mode: job.mode, id: job.id });
             
+            // 2. 等待 ACK (防止接收方没准备好)
+            updateUI(job.id, 0, "Waiting ACK...", job.mode, false);
+            await new Promise(resolve => {
+                pendingAcks[job.id] = resolve;
+                // 5秒超时保护
+                setTimeout(() => { if(pendingAcks[job.id]) resolve(); }, 5000); 
+            });
+
+            // 3. 开始发送切片
             let offset = 0;
             const start = Date.now();
             let lastUp = 0;
@@ -276,7 +297,7 @@
                 offset += CHUNK_SIZE;
 
                 const now = Date.now();
-                if (now - lastUp > 500 || offset >= job.file.size) {
+                if (now - lastUp > 200 || offset >= job.file.size) {
                     const speed = calcSpeed(offset, start);
                     const pct = Math.floor((offset / job.file.size) * 100);
                     updateUI(job.id, pct, speed, job.mode, false);
@@ -285,7 +306,7 @@
             }
             conn.send({ type: 'end' });
             
-            // Local Preview Generation
+            // 发送方本地预览
             const url = URL.createObjectURL(job.file);
             finishUI(job.id, url, job.file.name, job.file.type, job.mode, 'out');
             
@@ -293,7 +314,7 @@
             processQueue();
         }
 
-        // 4. UI 渲染引擎
+        // 4. UI 渲染逻辑
         function createUI(id, name, size, mode, dir) {
             if (mode === 'main') {
                 const li = document.createElement('li');
@@ -303,7 +324,7 @@
                     <div class="file-icon">${dir==='out'?'📤':'📥'}</div>
                     <div class="file-info">
                         <div class="file-name">${name}</div>
-                        <div class="file-meta"><span class="state">Waiting...</span><span>${formatSize(size)}</span></div>
+                        <div class="file-meta"><span class="state">Ready</span><span>${formatSize(size)}</span></div>
                         <div class="progress-bg"><div class="progress-fill" style="width:0%"></div></div>
                     </div>
                     <div class="file-action"></div>
@@ -328,10 +349,8 @@
         function updateUI(id, pct, speed, mode, isRx) {
             const el = document.getElementById(`ui-${id}`);
             if (!el) return;
-            
             const bar = el.querySelector(mode==='main' ? '.progress-fill' : '.bubble-fill');
             const txt = el.querySelector(mode==='main' ? '.state' : '.bubble-meta');
-            
             if(bar) bar.style.width = pct + "%";
             if(txt) txt.innerText = `${pct}% • ${speed}`;
         }
@@ -349,47 +368,71 @@
                     el.querySelector('.file-action').innerText = "✅";
                 }
             } else {
-                const isImg = mime.startsWith('image/');
-                if (isImg) {
+                if (mime.startsWith('image/')) {
                     el.innerHTML = `<img src="${url}" class="msg-img" onclick="viewImg('${url}')">`;
                 } else {
-                    if (dir === 'in') {
-                        el.innerHTML = `<div style="background:#FFF; padding:10px; border-radius:8px; color:#333; cursor:pointer;" onclick="saveFile('${url}', '${name}')">📥 Tap to Save<br><small>${name}</small></div>`;
-                    } else {
-                        el.innerHTML = `<div style="opacity:0.8">✅ Sent: ${name}</div>`;
-                    }
+                    el.innerHTML = dir === 'in' 
+                        ? `<div style="background:#FFF; padding:10px; border-radius:8px; color:#333; cursor:pointer;" onclick="saveFile('${url}', '${name}')">📥 Save: ${name}</div>`
+                        : `<div style="opacity:0.8">✅ Sent: ${name}</div>`;
                 }
                 ui.chatBody.scrollTop = ui.chatBody.scrollHeight;
             }
         }
 
-        // 5. 辅助功能
+        // 5. 文件夹递归扫描 (PC Drag & Drop Fix)
+        async function scanFiles(item) {
+            if (item.isFile) {
+                return new Promise(resolve => item.file(f => resolve([f])));
+            } else if (item.isDirectory) {
+                const reader = item.createReader();
+                const entries = await new Promise(resolve => reader.readEntries(resolve));
+                let files = [];
+                for (let entry of entries) {
+                    files = files.concat(await scanFiles(entry));
+                }
+                return files;
+            }
+            return [];
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            ui.dropZone.classList.remove('drag-over');
+            const items = e.dataTransfer.items;
+            let files = [];
+            for (let i = 0; i < items.length; i++) {
+                const entry = items[i].webkitGetAsEntry();
+                if (entry) files = files.concat(await scanFiles(entry));
+            }
+            handleFiles(files, 'main');
+        }
+
+        // 6. 辅助功能
         function calcSpeed(bytes, start) {
             const sec = (Date.now() - start) / 1000;
-            if (sec <= 0) return "";
-            const rate = bytes / sec;
-            return rate > 1024*1024 ? (rate/1024/1024).toFixed(1)+" MB/s" : (rate/1024).toFixed(0)+" KB/s";
+            return sec > 0 ? formatSize(bytes/sec) + "/s" : "";
         }
-        function formatSize(b) { return b > 1024*1024 ? (b/1024/1024).toFixed(1)+" MB" : (b/1024).toFixed(0)+" KB"; }
+        function formatSize(b) { return b > 1048576 ? (b/1048576).toFixed(1)+" MB" : (b/1024).toFixed(0)+" KB"; }
         
-        // 拖拽
-        const dz = document.getElementById('drop-zone');
-        dz.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; dz.classList.add('drag-over'); };
-        dz.ondragleave = () => dz.classList.remove('drag-over');
-        dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag-over'); handleFiles(e.dataTransfer.files, 'main'); };
-        
+        // 拖拽绑定
+        ui.dropZone.ondragover = e => { e.preventDefault(); ui.dropZone.classList.add('drag-over'); };
+        ui.dropZone.ondragleave = () => ui.dropZone.classList.remove('drag-over');
+        ui.dropZone.ondrop = handleDrop;
+        document.body.ondragover = e => e.preventDefault(); // 防止浏览器直接打开文件
+        document.body.ondrop = e => e.preventDefault();
+
         // 聊天交互
         function toggleChat() { 
-            document.getElementById('chat-modal').classList.toggle('visible'); 
-            if(document.getElementById('chat-modal').classList.contains('visible')) document.getElementById('chat-input').focus();
+            ui.modal.classList.toggle('visible'); 
+            if(ui.modal.classList.contains('visible')) ui.chatInput.focus();
         }
-        document.getElementById('chat-input').onkeydown = e => { if(e.key === 'Enter') sendText(); };
+        ui.chatInput.onkeydown = e => { if(e.key === 'Enter') sendText(); };
         function sendText() {
-            const txt = document.getElementById('chat-input').value.trim();
+            const txt = ui.chatInput.value.trim();
             if(!txt || !conn) return;
             conn.send({type:'chat', text:txt});
             addChatMsg(txt, 'self');
-            document.getElementById('chat-input').value = "";
+            ui.chatInput.value = "";
         }
         function addChatMsg(txt, type) {
             const div = document.createElement('div');
@@ -398,13 +441,15 @@
             ui.chatBody.scrollTop = ui.chatBody.scrollHeight;
         }
 
-        // 全局
+        // 全局通用
         window.viewImg = src => { document.getElementById('lb-img').src = src; document.getElementById('lightbox').style.display = 'flex'; };
         window.saveFile = (url, name) => { const a = document.createElement('a'); a.href = url; a.download = name; a.click(); };
         function startScan() { document.getElementById('scan-overlay').style.display = 'block'; html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, t => { document.getElementById('friend-id').value = t; stopScan(); }, null); }
         function stopScan() { html5QrCode?.stop(); document.getElementById('scan-overlay').style.display = 'none'; }
         function unlockAudio() { document.getElementById('silent-audio').play().catch(()=>{}); document.body.onclick = null; }
         function showToast(t) { const el = document.getElementById('toast'); el.innerText = t; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 3000); }
+        async function requestWakeLock() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} }
+        function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } }
     </script>
 </body>
 </html>
