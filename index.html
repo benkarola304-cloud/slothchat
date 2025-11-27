@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#F7F9F7">
+    <meta name="theme-color" content="#E9F5DB">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MochiDrop 🦥 V7.0</title>
+    <title>MochiDrop Reborn 🦥</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3750/3750019.png">
@@ -18,456 +18,674 @@
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;600;700&display=swap');
         
         :root {
-            --primary: #76A665; --bg: #F7F9F7; --card-bg: #FFF; --text: #2C3E50; --grey: #95A5A6;
-            --bubble-self: #76A665; --bubble-friend: #FFFFFF;
+            /* 树懒主题色 */
+            --primary: #76A665;
+            --primary-light: #B5D6B2;
+            --bg: #F2F7F2;
+            --card: #FFFFFF;
+            --text: #2C3E50;
+            --grey: #95A5A6;
+            --bubble-self: #76A665;
+            --bubble-friend: #FFFFFF;
         }
 
-        * { box-sizing: border-box; }
-        body { font-family: 'Quicksand', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-top: 70px; padding-bottom: 40px; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Quicksand', sans-serif; background: var(--bg); color: var(--text);
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
+            height: 100vh; overflow: hidden; /* 防止整体滚动 */
+        }
 
-        .navbar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: rgba(247,249,247,0.95); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 1px 0 rgba(0,0,0,0.05); }
-        .navbar-title { font-family: 'Fredoka One', cursive; color: var(--primary); font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
-        
-        .card { width: 90%; max-width: 420px; background: #FFF; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card-label { font-size: 0.75rem; color: var(--grey); font-weight: 700; letter-spacing: 1px; margin-bottom: 15px; display: block; text-align: left; }
-        
-        /* 身份 & 连接 */
-        .identity-row { display: flex; align-items: center; gap: 15px; }
-        #qrcode { background: #F0F2F0; border-radius: 12px; padding: 5px; display: inline-block; }
-        #qrcode img { display: block; }
-        .id-text { font-family: monospace; font-size: 1.1rem; font-weight: 700; word-break: break-all; }
-        .status-dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .status-dot.online { background: var(--primary); animation: pulse 2s infinite; }
-        
-        .input-group { display: flex; background: #F0F2F0; border-radius: 12px; padding: 5px; margin-bottom: 10px; }
-        input[type="text"] { flex: 1; border: none; background: transparent; padding: 10px; font-size: 1rem; outline: none; text-align: center; }
-        .btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        /* --- 顶部导航 --- */
+        .header {
+            width: 100%; height: 60px; background: rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05); z-index: 100;
+            flex-shrink: 0;
+        }
+        .header h1 { 
+            font-family: 'Fredoka One', cursive; color: var(--primary); font-size: 1.4rem; 
+            margin: 0; display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- 主滚动区域 --- */
+        .main-scroll {
+            flex: 1; width: 100%; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+        }
+
+        /* --- 卡片样式 --- */
+        .card {
+            width: 100%; max-width: 450px; background: var(--card);
+            border-radius: 20px; padding: 20px;
+            box-shadow: 0 5px 15px rgba(118, 166, 101, 0.1);
+        }
+        .card-title {
+            font-size: 0.8rem; color: var(--grey); font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;
+        }
+
+        /* ID & 连接 */
+        .id-row { display: flex; align-items: center; gap: 15px; }
+        .qr-box { background: #F0F0F0; padding: 5px; border-radius: 10px; }
+        .id-text { font-family: monospace; font-size: 1.2rem; font-weight: 700; word-break: break-all;}
+        .status-tag { 
+            display: inline-block; padding: 4px 10px; border-radius: 12px; 
+            background: #eee; font-size: 0.75rem; font-weight: 600; margin-top: 5px;
+        }
+        .status-tag.connected { background: #D4EDDA; color: #155724; }
+
+        .input-group { 
+            display: flex; background: #F5F5F5; border-radius: 12px; padding: 5px; 
+            margin-bottom: 10px; border: 1px solid transparent; transition: 0.3s;
+        }
+        .input-group:focus-within { border-color: var(--primary); background: #FFF; }
+        input { 
+            flex: 1; border: none; background: transparent; padding: 10px; 
+            font-size: 1rem; outline: none; text-align: center; font-weight: 600; color: var(--text);
+        }
+        .btn-icon { border: none; background: #FFF; width: 40px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; }
+        .btn-main { 
+            width: 100%; padding: 14px; background: var(--primary); color: white; 
+            border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; 
+            cursor: pointer; transition: 0.2s; 
+        }
         .btn-main:active { transform: scale(0.98); opacity: 0.9; }
-        .btn-icon-sm { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0 10px; }
 
-        /* 传输列表 */
-        .upload-area { border: 2px dashed #C1D1BE; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; background: #FAFCFA; transition: 0.3s; }
-        .upload-area.drag-over { background: #E8F5E9; border-color: var(--primary); transform: scale(1.02); }
+        /* 传输区域 */
+        .drop-zone {
+            border: 2px dashed #C1D1BE; border-radius: 16px; padding: 30px;
+            text-align: center; cursor: pointer; background: #FAFCFA; transition: 0.2s;
+        }
+        .drop-zone.drag-over { background: #E8F5E9; border-color: var(--primary); transform: scale(1.02); }
         
-        .file-list { list-style: none; padding: 0; margin: 15px 0; max-height: 400px; overflow-y: auto; }
-        .file-item { background: #FFF; border: 1px solid #EEE; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
-        .file-info { flex: 1; overflow: hidden; }
-        .file-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
-        .file-meta { font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; margin-top: 4px; font-family: monospace; }
-        .progress-bg { height: 4px; background: #EEE; border-radius: 2px; margin-top: 6px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.2s; }
-        .file-action { font-size: 1.2rem; cursor: pointer; color: var(--primary); }
+        .transfer-list { list-style: none; padding: 0; margin: 15px 0 0 0; }
+        .transfer-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px;
+            background: #F9F9F9; border-radius: 10px; margin-bottom: 8px;
+            border-left: 4px solid #ddd;
+        }
+        .transfer-item.sending { border-left-color: #3498DB; }
+        .transfer-item.receiving { border-left-color: #F1C40F; }
+        .transfer-item.done { border-left-color: var(--primary); }
+        .transfer-item.error { border-left-color: #E74C3C; }
+        
+        .t-info { flex: 1; overflow: hidden; }
+        .t-name { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .t-meta { font-size: 0.75rem; color: #777; display: flex; justify-content: space-between; margin-top: 3px; }
+        .t-bar { height: 4px; background: #eee; margin-top: 5px; border-radius: 2px; overflow: hidden; }
+        .t-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.2s; }
+
+        /* 聊天悬浮球 */
+        .fab {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px; background: var(--primary); color: white;
+            border-radius: 50%; display: none; align-items: center; justify-content: center;
+            font-size: 1.8rem; box-shadow: 0 5px 20px rgba(118,166,101,0.4);
+            cursor: pointer; z-index: 500; transition: transform 0.2s;
+        }
+        .fab:active { transform: scale(0.9); }
+        .badge {
+            position: absolute; top: 0; right: 0; width: 14px; height: 14px;
+            background: #FF5252; border-radius: 50%; border: 2px solid white; display: none;
+        }
 
         /* 聊天窗口 */
-        #fab-chat { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; color: white; border: none; font-size: 1.8rem; box-shadow: 0 5px 20px rgba(118,166,101,0.4); display: none; align-items: center; justify-content: center; z-index: 2000; cursor: pointer; }
-        #chat-modal { position: fixed; bottom: -100%; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; transition: bottom 0.3s; display: flex; align-items: flex-end; justify-content: center; }
-        #chat-modal.visible { bottom: 0; }
-        .chat-box { width: 100%; max-width: 500px; height: 85vh; background: #F2F4F2; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-header { padding: 15px; background: #FFF; display: flex; justify-content: space-between; align-items: center; font-weight: 700; border-bottom: 1px solid #EEE; }
-        .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; word-break: break-word; position: relative; }
-        .msg.self { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
-        .msg.friend { align-self: flex-start; background: #FFF; color: #333; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .msg-img { max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: zoom-in; display: block; background: #eee; }
-        .chat-footer { padding: 10px; background: #FFF; border-top: 1px solid #EEE; display: flex; gap: 10px; align-items: center; }
-        .chat-input { flex: 1; padding: 10px; background: #F5F5F5; border: none; border-radius: 20px; outline: none; }
+        .chat-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; align-items: flex-end; justify-content: center;
+        }
+        .chat-modal.active { display: flex; }
         
-        /* 调试与辅助 */
-        #debug-log { position: fixed; top: 70px; left: 10px; font-size: 10px; color: #999; pointer-events: none; z-index: 500; display: none; }
-        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #333; color: #FFF; padding: 10px 20px; border-radius: 30px; display: none; z-index: 5000; white-space: nowrap; }
-        #scan-overlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; }
-        #reader { width: 100%; height: 100%; }
-        #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; align-items: center; justify-content: center; }
+        .chat-box {
+            width: 100%; max-width: 500px; height: 85vh;
+            background: #F2F4F2; border-radius: 20px 20px 0 0;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.2);
+        }
+        
+        .chat-header {
+            padding: 15px; background: #FFF; border-bottom: 1px solid #EEE;
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 700; color: var(--primary);
+        }
+        
+        .chat-msgs {
+            flex: 1; padding: 15px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        
+        .msg {
+            max-width: 80%; padding: 10px 14px; border-radius: 16px;
+            font-size: 0.95rem; line-height: 1.4; word-break: break-word;
+            position: relative;
+        }
+        .msg.self { align-self: flex-end; background: var(--bubble-self); color: white; border-bottom-right-radius: 2px; }
+        .msg.friend { align-self: flex-start; background: var(--bubble-friend); color: #333; border-bottom-left-radius: 2px; }
+        
+        .chat-img { max-width: 200px; border-radius: 8px; cursor: zoom-in; display: block; margin-top: 5px; }
+        
+        .chat-input-area {
+            padding: 10px; background: #FFF; border-top: 1px solid #EEE;
+            display: flex; gap: 10px; align-items: center;
+        }
+        .chat-input {
+            flex: 1; padding: 10px 15px; background: #F5F5F5; border: none;
+            border-radius: 20px; font-size: 1rem; outline: none;
+        }
+        
+        /* 辅助元素 */
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; display: none; z-index: 2000; }
+        #scanner-layer { position: fixed; inset: 0; background: #000; z-index: 1500; display: none; }
+        #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; }
         #lightbox img { max-width: 95%; max-height: 95%; border-radius: 5px; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        /* 表情面板 */
+        .emoji-panel {
+            display: none; padding: 10px; background: #FFF;
+            grid-template-columns: repeat(8, 1fr); gap: 5px;
+            border-top: 1px solid #EEE; max-height: 150px; overflow-y: auto;
+        }
+        .emoji { cursor: pointer; font-size: 1.4rem; text-align: center; padding: 5px; }
+        
     </style>
 </head>
-<body onclick="unlockAudio()">
+<body>
 
-    <audio id="silent-audio" loop><source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//oeAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD//////////////////////////////////////////////////////////////////wAAAP//OgAAAAAAAABMYXZjNTguMTM0LjEwMAAAAAAAAAAAAAAA//oeAAAAAAABIAAAAAAAAAAAAAAA//oeAAAAAAAAAAAAAAAAAAAAAAA=" type="audio/mpeg"></audio>
-    
-    <div id="debug-log"></div>
-
-    <div class="navbar">
-        <div class="navbar-title"><img src="https://cdn-icons-png.flaticon.com/512/3750/3750019.png" width="30"> SlothDrop</div>
+    <div class="header">
+        <h1><img src="https://cdn-icons-png.flaticon.com/512/3750/3750019.png" width="30"> SlothDrop</h1>
     </div>
 
-    <div class="card" id="identity-panel">
-        <span class="card-label">MY IDENTITY</span>
-        <div class="identity-row">
-            <div id="qrcode"></div>
-            <div>
-                <div class="id-text" id="my-id">Connecting...</div>
-                <div style="margin-top:5px; font-size:0.85rem; color:#666;">
-                    <span class="status-dot" id="status-dot"></span><span id="status-text">Init...</span>
+    <div class="main-scroll">
+        
+        <div class="card">
+            <span class="card-title">MY IDENTITY</span>
+            <div class="id-row">
+                <div class="qr-box" id="qrcode"></div>
+                <div>
+                    <div class="id-text" id="my-id">Initializing...</div>
+                    <div class="status-tag" id="conn-status">Waiting for network...</div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="card" id="connect-panel">
-        <span class="card-label">CONNECT</span>
-        <div class="input-group">
-            <input type="text" id="friend-id" placeholder="Enter ID">
-            <button class="btn-icon-sm" onclick="startScan()">📷</button>
+        <div class="card" id="card-connect">
+            <span class="card-title">CONNECT DEVICE</span>
+            <div class="input-group">
+                <input type="text" id="target-id" placeholder="Enter Friend's ID">
+                <button class="btn-icon" onclick="startScan()">📷</button>
+            </div>
+            <button class="btn-main" onclick="connectUser()">Connect</button>
         </div>
-        <button class="btn-main" onclick="connectToFriend()">Connect Now</button>
+
+        <div class="card" id="card-transfer" style="display:none;">
+            <span class="card-title">FILE TRANSFER</span>
+            <div class="drop-zone" id="drop-zone">
+                <div style="font-size: 2rem;">📂</div>
+                <div>Click or Drag Files/Folders Here</div>
+            </div>
+            <input type="file" id="file-input" multiple style="display:none">
+            
+            <ul class="transfer-list" id="transfer-list">
+                </ul>
+        </div>
     </div>
 
-    <div class="card" id="transfer-panel" style="display:none;">
-        <span class="card-label">TRANSFER (Drag & Drop Ready)</span>
-        
-        <label class="upload-area" id="drop-zone">
-            <div style="font-size:2rem; margin-bottom:10px;">📂</div>
-            <div>Click or Drag Files/Folders</div>
-        </label>
-        <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this.files, 'main')">
-        
-        <ul class="file-list" id="main-file-list"></ul>
+    <div class="fab" id="fab" onclick="openChat()">
+        💬
+        <div class="badge" id="chat-badge"></div>
     </div>
 
-    <button id="fab-chat" onclick="toggleChat()">💬</button>
-
-    <div id="chat-modal">
+    <div class="chat-modal" id="chat-modal">
         <div class="chat-box">
             <div class="chat-header">
                 <span>💬 Chat</span>
-                <span onclick="toggleChat()" style="cursor:pointer; padding:10px;">✕</span>
+                <span onclick="closeChat()" style="padding:10px; cursor:pointer;">✕</span>
             </div>
-            <div class="chat-body" id="chat-body">
-                <div style="text-align:center; color:#AAA; font-size:0.8rem; margin-top:20px;">Connection Established.</div>
+            <div class="chat-msgs" id="chat-msgs">
+                <div style="text-align:center; color:#ccc; margin-top:20px; font-size:0.8rem;">Secure Connection Established</div>
             </div>
+            <div class="emoji-panel" id="emoji-panel"></div>
             <div class="chat-footer">
-                <button class="btn-icon-sm" onclick="document.getElementById('chat-file-in').click()">📎</button>
+                <button class="btn-icon" onclick="document.getElementById('chat-file-input').click()">📎</button>
+                <button class="btn-icon" onclick="toggleEmoji()">😊</button>
                 <input type="text" class="chat-input" id="chat-input" placeholder="Message..." autocomplete="off">
-                <button class="btn-icon-sm" style="color:var(--primary)" onclick="sendText()">➤</button>
-                <input type="file" id="chat-file-in" multiple style="display:none" onchange="handleFiles(this.files, 'chat')">
+                <button class="btn-icon" style="color:var(--primary)" onclick="sendText()">➤</button>
             </div>
+            <input type="file" id="chat-file-input" multiple style="display:none">
         </div>
     </div>
 
-    <div id="toast">Msg</div>
+    <div id="toast">Message</div>
+    <div id="scanner-layer"><div id="reader" style="width:100%;height:100%"></div><button class="btn-main" style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);width:auto" onclick="stopScan()">Close Camera</button></div>
     <div id="lightbox" onclick="this.style.display='none'"><img id="lb-img"></div>
-    <div id="scan-overlay"><button class="btn-main" style="position:absolute;top:20px;right:20px;width:auto;" onclick="stopScan()">Close</button><div id="reader"></div></div>
 
     <script>
-        // --- V7.0 Architect Core ---
-        let peer, conn;
-        // 使用 16KB 切片，这是 WebRTC 在 iOS 和 Android 间最稳的数值
-        const CHUNK_SIZE = 16384; 
-        let fileQueue = [];
-        let isSending = false;
-        let pendingAck = null;
-
-        const ui = {
-            id: document.getElementById('my-id'),
-            stat: document.getElementById('status-text'),
-            dot: document.getElementById('status-dot'),
-            mainList: document.getElementById('main-file-list'),
-            chatBody: document.getElementById('chat-body'),
-            toast: document.getElementById('toast')
+        // --- 全局状态 ---
+        const App = {
+            peer: null,
+            conn: null,
+            id: null,
+            queue: [], // 发送队列
+            isSending: false, // 发送锁
+            chunkSize: 16 * 1024, // 16KB 安全切片
+            maxBuffer: 64 * 1024 // 64KB 背压阈值
         };
 
-        // 1. 初始化 PeerJS
-        try {
-            peer = new Peer(null, { debug: 1 });
-            peer.on('open', id => {
-                ui.id.innerText = id;
-                ui.stat.innerText = "Online";
-                ui.dot.classList.add('online');
-                new QRCode(document.getElementById("qrcode"), { text: id, width: 80, height: 80 });
-                log("Peer Ready: " + id);
-            });
-            peer.on('connection', c => { conn = c; setupConnection(); });
-            peer.on('error', e => showToast("Error: " + e.type));
-        } catch(e) { alert("Init Failed"); }
+        const UI = {
+            myId: document.getElementById('my-id'),
+            status: document.getElementById('conn-status'),
+            cardConnect: document.getElementById('card-connect'),
+            cardTransfer: document.getElementById('card-transfer'),
+            list: document.getElementById('transfer-list'),
+            fab: document.getElementById('fab'),
+            chatModal: document.getElementById('chat-modal'),
+            chatMsgs: document.getElementById('chat-msgs'),
+            chatBadge: document.getElementById('chat-badge'),
+            dropZone: document.getElementById('drop-zone')
+        };
 
-        function connectToFriend() {
-            const id = document.getElementById('friend-id').value.trim();
-            if(!id) return showToast("Enter ID");
-            log("Connecting to " + id);
-            conn = peer.connect(id, { reliable: true });
-            setupConnection();
+        // --- 1. 初始化 PeerJS ---
+        function init() {
+            App.peer = new Peer(null, { debug: 1 });
+            
+            App.peer.on('open', id => {
+                App.id = id;
+                UI.myId.innerText = id;
+                UI.status.innerText = "Online - Ready to Connect";
+                new QRCode(document.getElementById("qrcode"), { text: id, width: 90, height: 90, colorDark: "#2C3E50", colorLight: "#F0F0F0", correctLevel: QRCode.CorrectLevel.L });
+            });
+
+            App.peer.on('connection', conn => {
+                handleConnection(conn);
+            });
+
+            App.peer.on('error', err => showToast("Error: " + err.type));
+        }
+        init(); // 启动
+
+        // --- 2. 连接处理 ---
+        function connectUser() {
+            const id = document.getElementById('target-id').value.trim();
+            if(!id) return showToast("Please enter ID");
+            const conn = App.peer.connect(id, { reliable: true });
+            handleConnection(conn);
         }
 
-        function setupConnection() {
+        function handleConnection(conn) {
+            App.conn = conn;
+            
             conn.on('open', () => {
                 showToast("Connected!");
-                document.getElementById('connect-panel').style.display = 'none';
-                document.getElementById('transfer-panel').style.display = 'block';
-                document.getElementById('fab-chat').style.display = 'flex';
-                ui.stat.innerText = "Linked";
-                log("Connection Open");
+                UI.status.innerText = "Connected";
+                UI.status.classList.add('connected');
+                
+                // 切换界面
+                UI.cardConnect.style.display = 'none';
+                UI.cardTransfer.style.display = 'block';
+                UI.fab.style.display = 'flex';
             });
-            conn.on('close', () => { showToast("Disconnected"); setTimeout(()=>location.reload(), 1000); });
-            conn.on('data', handleData);
+
+            conn.on('close', () => {
+                showToast("Disconnected");
+                setTimeout(() => location.reload(), 1500);
+            });
+
+            conn.on('data', data => onDataReceived(data));
         }
 
-        // 2. 接收数据核心 (状态机)
-        let rx = { buf: [], size: 0, meta: null, id: null, start: 0, lastUp: 0 };
+        // --- 3. 核心接收逻辑 (状态机) ---
+        let rxState = { buffer: [], received: 0, meta: null, id: null, start: 0, lastUpdate: 0 };
 
-        function handleData(data) {
-            // A. 二进制数据 (文件内容)
+        function onDataReceived(data) {
+            // A. 二进制数据 (文件块)
             if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
-                if (!rx.meta) return; // 丢弃孤儿数据
+                if (!rxState.meta) return; // 还没有收到头，丢弃
                 
                 const chunk = new Uint8Array(data);
-                rx.buf.push(chunk);
-                rx.size += chunk.byteLength;
-                
+                rxState.buffer.push(chunk);
+                rxState.received += chunk.byteLength;
+
+                // 节流更新进度
                 const now = Date.now();
-                if (now - rx.lastUp > 500 || rx.size === rx.meta.size) {
-                    const speed = calcSpeed(rx.size, rx.start);
-                    const pct = Math.floor((rx.size / rx.meta.size) * 100);
-                    updateUI(rx.id, pct, speed, rx.meta.mode);
-                    rx.lastUp = now;
+                if (now - rxState.lastUpdate > 200 || rxState.received === rxState.meta.size) {
+                    updateProgress(rxState.id, rxState.received, rxState.meta.size, rxState.start);
+                    rxState.lastUpdate = now;
                 }
             }
-            // B. 控制信令
+            // B. 控制信令 (JSON)
             else if (data.type) {
-                log("Recv Signal: " + data.type);
                 if (data.type === 'header') {
-                    // 1. 初始化接收
-                    rx.buf = []; rx.size = 0; rx.meta = data; rx.id = data.id; rx.start = Date.now();
-                    createUI(data.id, data.name, data.size, data.mode, 'in');
+                    // 1. 准备接收
+                    rxState.buffer = []; rxState.received = 0; rxState.meta = data; 
+                    rxState.id = data.id; rxState.start = Date.now();
                     
-                    // 2. 关键修复：发送 ACK 确认握手
-                    conn.send({ type: 'ack', id: data.id });
+                    // 2. 创建 UI
+                    createTransferItem(data.id, data.name, 'receiving', data.mode);
                     
-                    if(data.mode === 'chat' && !document.getElementById('chat-modal').classList.contains('visible')) showToast("New File!");
+                    // 3. 关键：发送 ACK 确认，告诉发送方可以发数据了
+                    App.conn.send({ type: 'ack', id: data.id });
                 }
                 else if (data.type === 'ack') {
-                    // 发送方收到确认，解锁发送队列
-                    if (pendingAck && pendingAck.id === data.id) pendingAck.resolve();
+                    // 发送方收到 ACK，触发队列继续
+                    if (App.pendingAckResolve) {
+                        App.pendingAckResolve();
+                        App.pendingAckResolve = null;
+                    }
                 }
                 else if (data.type === 'end') {
-                    // 3. 接收完成，生成文件
-                    const blob = new Blob(rx.buf, { type: rx.meta.mime || 'application/octet-stream' });
+                    // 4. 接收完成，生成文件
+                    const blob = new Blob(rxState.buffer, { type: rxState.meta.mime });
                     const url = URL.createObjectURL(blob);
-                    
-                    finishUI(rx.id, url, rx.meta.name, rx.meta.mime, rx.meta.mode, 'in');
-                    rx.buf = []; rx.meta = null;
+                    finishTransferItem(rxState.id, url, rxState.meta.name, rxState.meta.mime, 'in', rxState.meta.mode);
+                    rxState.buffer = []; rxState.meta = null;
                 }
                 else if (data.type === 'chat') {
-                    addChatMsg(data.text, 'friend');
-                    if(!document.getElementById('chat-modal').classList.contains('visible')) showToast("New Message");
+                    appendChatMsg(data.text, 'friend');
+                    if (UI.chatModal.style.display !== 'flex') {
+                        UI.chatBadge.style.display = 'block';
+                        showToast("New Message");
+                    }
                 }
             }
         }
 
-        // 3. 发送核心 (带 ACK 重试机制)
-        function handleFiles(files, mode) {
+        // --- 4. 核心发送逻辑 (队列 + ACK握手) ---
+        // 添加文件到队列
+        function enqueueFiles(files, mode) {
             for (let f of files) {
                 const id = Date.now() + Math.random().toString(16).slice(2);
-                createUI(id, f.name, f.size, mode, 'out');
-                fileQueue.push({ file: f, id: id, mode: mode });
+                // 立即创建 UI
+                createTransferItem(id, f.name, 'sending', mode);
+                // 入队
+                App.queue.push({ file: f, id: id, mode: mode });
             }
             processQueue();
         }
 
         async function processQueue() {
-            if (isSending || fileQueue.length === 0) return;
-            isSending = true;
-            const job = fileQueue.shift();
-            log("Start Sending: " + job.file.name);
+            if (App.isSending || App.queue.length === 0) return;
+            App.isSending = true;
 
-            // 1. 尝试发送 Header 并等待 ACK
-            let ackReceived = false;
-            let attempts = 0;
+            const job = App.queue.shift();
             
-            while (!ackReceived && attempts < 3) {
-                conn.send({ type: 'header', name: job.file.name, size: job.file.size, mime: job.file.type, mode: job.mode, id: job.id });
-                updateUI(job.id, 0, "Handshake...", job.mode);
-                
-                try {
-                    // 等待 3 秒 ACK，超时重试
-                    await new Promise((resolve, reject) => {
-                        pendingAck = { id: job.id, resolve: resolve };
-                        setTimeout(reject, 3000); 
-                    });
-                    ackReceived = true;
-                } catch (e) {
-                    attempts++;
-                    log("ACK Timeout, Retrying...");
-                }
-            }
+            // 1. 发送 Header
+            App.conn.send({ 
+                type: 'header', 
+                name: job.file.name, 
+                size: job.file.size, 
+                mime: job.file.type, 
+                id: job.id, 
+                mode: job.mode 
+            });
 
-            if (!ackReceived) {
-                showToast("Connection unstable, skip file.");
-                updateUI(job.id, 0, "Failed", job.mode);
-                isSending = false;
+            // 2. 等待 ACK (防止接收方没准备好)
+            try {
+                await new Promise((resolve, reject) => {
+                    App.pendingAckResolve = resolve;
+                    setTimeout(() => reject("Timeout"), 5000); // 5秒超时
+                });
+            } catch (e) {
+                showToast("Connection unstable, skipping file.");
+                App.isSending = false;
                 processQueue();
                 return;
             }
 
-            // 2. 握手成功，全速发送
+            // 3. 发送数据块
             let offset = 0;
             const start = Date.now();
-            let lastUp = 0;
-
-            // 读取文件流
-            const reader = new FileReader();
-            
-            // 使用 Promise 封装 FileReader，避免回调地狱
-            const readChunk = (start, end) => new Promise(resolve => {
-                const slice = job.file.slice(start, end);
-                reader.onload = e => resolve(e.target.result);
-                reader.readAsArrayBuffer(slice);
-            });
+            let lastUpdate = 0;
 
             while (offset < job.file.size) {
-                // 背压控制：防止浏览器缓冲区溢出
-                if (conn.dataChannel.bufferedAmount > 1024 * 1024) { // 1MB Buffer Limit
-                    await new Promise(r => setTimeout(r, 10));
+                // 背压控制：如果缓冲区满了，暂停
+                if (App.conn.dataChannel.bufferedAmount > App.maxBuffer) {
+                    await new Promise(r => setTimeout(r, 20));
                     continue;
                 }
 
-                const buffer = await readChunk(offset, offset + CHUNK_SIZE);
-                conn.send(new Uint8Array(buffer)); // 强制转 Uint8Array 发送
-                offset += CHUNK_SIZE;
+                const chunk = job.file.slice(offset, offset + App.chunkSize);
+                const buffer = await chunk.arrayBuffer();
+                App.conn.send(new Uint8Array(buffer));
+                offset += App.chunkSize;
 
+                // 更新 UI
                 const now = Date.now();
-                if (now - lastUp > 200 || offset >= job.file.size) {
-                    const speed = calcSpeed(offset, start);
-                    const pct = Math.floor((offset / job.file.size) * 100);
-                    updateUI(job.id, pct, speed, job.mode);
-                    lastUp = now;
+                if (now - lastUpdate > 200 || offset >= job.file.size) {
+                    updateProgress(job.id, offset, job.file.size, start);
+                    lastUpdate = now;
                 }
             }
 
-            conn.send({ type: 'end' });
+            // 4. 发送结束
+            App.conn.send({ type: 'end' });
             
-            // 发送方本地预览
+            // 发送方本地完成状态
             const url = URL.createObjectURL(job.file);
-            finishUI(job.id, url, job.file.name, job.file.type, job.mode, 'out');
-            
-            isSending = false;
-            processQueue();
+            finishTransferItem(job.id, url, job.file.name, job.file.type, 'out', job.mode);
+
+            App.isSending = false;
+            processQueue(); // 下一个
         }
 
-        // 4. PC 拖拽修复 (深度递归扫描)
-        const dz = document.getElementById('drop-zone');
-        dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag-over'); };
-        dz.ondragleave = () => dz.classList.remove('drag-over');
-        dz.ondrop = async e => {
-            e.preventDefault(); dz.classList.remove('drag-over');
+        // --- 5. PC 拖拽文件夹深度扫描 ---
+        // 这是一个递归函数，用来“挖”出文件夹里所有的文件
+        async function scanFiles(entry) {
+            if (entry.isFile) {
+                return new Promise(resolve => entry.file(f => resolve([f])));
+            } else if (entry.isDirectory) {
+                const reader = entry.createReader();
+                const entries = await new Promise(resolve => reader.readEntries(resolve));
+                let files = [];
+                for (let e of entries) files = files.concat(await scanFiles(e));
+                return files;
+            }
+            return [];
+        }
+
+        async function handleDrop(e, mode) {
+            e.preventDefault();
+            UI.dropZone.classList.remove('drag-over');
+            
             const items = e.dataTransfer.items;
             let files = [];
             
-            // 递归扫描函数
-            const scan = async (entry) => {
-                if (entry.isFile) {
-                    return new Promise(r => entry.file(f => r([f])));
-                } else if (entry.isDirectory) {
-                    const reader = entry.createReader();
-                    const entries = await new Promise(r => reader.readEntries(r));
-                    let subFiles = [];
-                    for (let child of entries) subFiles = subFiles.concat(await scan(child));
-                    return subFiles;
-                }
-                return [];
-            };
-
             for (let i = 0; i < items.length; i++) {
                 const entry = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
-                if (entry) files = files.concat(await scan(entry));
-                else if (items[i].kind === 'file') files.push(items[i].getAsFile());
+                if (entry) {
+                    files = files.concat(await scanFiles(entry));
+                } else if (items[i].kind === 'file') {
+                    files.push(items[i].getAsFile());
+                }
             }
             
-            if (files.length > 0) handleFiles(files, 'main');
-        };
+            if (files.length > 0) enqueueFiles(files, mode);
+        }
 
-        // 5. UI 渲染系统
-        function createUI(id, name, size, mode, dir) {
+        // --- 6. UI 渲染与更新 ---
+        
+        function createTransferItem(id, name, type, mode) {
+            // mode: 'main' (主列表) or 'chat' (聊天气泡)
+            // type: 'sending' or 'receiving'
+            
             if (mode === 'main') {
                 const li = document.createElement('li');
-                li.className = 'file-item'; li.id = `ui-${id}`;
+                li.className = `transfer-item ${type}`;
+                li.id = `item-${id}`;
                 li.innerHTML = `
-                    <div style="font-size:1.5rem">${dir==='out'?'📤':'📥'}</div>
-                    <div class="file-info">
-                        <div class="file-name">${name}</div>
-                        <div class="file-meta"><span class="state">Waiting...</span><span>${formatSize(size)}</span></div>
-                        <div class="progress-bg"><div class="progress-fill" style="width:0%"></div></div>
+                    <div style="font-size:1.5rem">${type==='sending'?'📤':'📥'}</div>
+                    <div class="t-info">
+                        <div class="t-name">${name}</div>
+                        <div class="t-meta"><span class="state">Waiting...</span><span class="speed"></span></div>
+                        <div class="t-bar"><div class="t-fill" style="width:0%"></div></div>
                     </div>
-                    <div class="file-action"></div>
+                    <div class="actions"></div>
                 `;
-                ui.mainList.prepend(li);
+                UI.list.prepend(li);
             } else {
                 const div = document.createElement('div');
-                div.className = `msg ${dir === 'out' ? 'self' : 'friend'}`;
-                div.id = `ui-${id}`;
+                div.className = `msg ${type === 'sending' ? 'self' : 'friend'}`;
+                div.id = `bubble-${id}`;
                 div.innerHTML = `
-                    <div class="bubble-file">
-                        <div style="font-weight:600;font-size:0.9rem">📄 ${name}</div>
-                        <div class="progress-bg" style="margin-top:5px"><div class="progress-fill bubble-fill" style="width:0%"></div></div>
-                        <div class="file-meta bubble-meta">Waiting...</div>
+                    <div style="min-width:150px">
+                        <div style="font-weight:bold; font-size:0.9rem">📄 ${name}</div>
+                        <div class="t-bar" style="background:rgba(0,0,0,0.1); margin-top:5px;"><div class="t-fill" style="width:0%; background:rgba(255,255,255,0.8);"></div></div>
+                        <div class="t-meta" style="font-size:0.7rem; text-align:right; opacity:0.8">Waiting...</div>
                     </div>
                 `;
-                ui.chatBody.appendChild(div);
-                ui.chatBody.scrollTop = ui.chatBody.scrollHeight;
+                UI.chatMsgs.appendChild(div);
+                UI.chatMsgs.scrollTop = UI.chatMsgs.scrollHeight;
             }
         }
 
-        function updateUI(id, pct, speed, mode) {
-            const el = document.getElementById(`ui-${id}`);
-            if (!el) return;
-            const bar = el.querySelector(mode==='main' ? '.progress-fill' : '.bubble-fill');
-            const txt = el.querySelector(mode==='main' ? '.state' : '.bubble-meta');
-            if(bar) bar.style.width = pct + "%";
-            if(txt) txt.innerText = pct < 100 ? `${pct}% • ${speed}` : "Finalizing...";
+        function updateProgress(id, loaded, total, startTime) {
+            const pct = Math.floor((loaded / total) * 100);
+            const duration = (Date.now() - startTime) / 1000;
+            const speed = duration > 0 ? formatSize(loaded / duration) + '/s' : '';
+            
+            // 更新主列表
+            const mainItem = document.getElementById(`item-${id}`);
+            if (mainItem) {
+                mainItem.querySelector('.t-fill').style.width = pct + "%";
+                mainItem.querySelector('.state').innerText = pct + "%";
+                mainItem.querySelector('.speed').innerText = speed;
+            }
+            
+            // 更新聊天气泡
+            const bubble = document.getElementById(`bubble-${id}`);
+            if (bubble) {
+                bubble.querySelector('.t-fill').style.width = pct + "%";
+                bubble.querySelector('.t-meta').innerText = pct + "% " + speed;
+            }
         }
 
-        function finishUI(id, url, name, mime, mode, dir) {
-            const el = document.getElementById(`ui-${id}`);
-            if (!el) return;
+        function finishTransferItem(id, url, name, mime, dir, mode) {
+            const isImg = mime.startsWith('image/');
             
-            const isImg = mime && mime.startsWith('image/');
-            
-            if (mode === 'main') {
-                el.querySelector('.progress-bg').style.display = 'none';
-                el.querySelector('.state').innerText = "Done";
-                if (dir === 'in') el.querySelector('.file-action').innerHTML = `<a href="${url}" download="${name}" style="text-decoration:none;font-size:1.5rem">💾</a>`;
-                else el.querySelector('.file-action').innerText = "✅";
-            } else {
-                if (isImg) {
-                    el.innerHTML = `<img src="${url}" class="msg-img" onclick="viewImg('${url}')">`;
+            // 更新主列表
+            const mainItem = document.getElementById(`item-${id}`);
+            if (mainItem) {
+                mainItem.classList.add('done');
+                mainItem.querySelector('.t-bar').style.display = 'none';
+                mainItem.querySelector('.t-meta').innerHTML = `<span style="color:var(--primary)">Completed</span>`;
+                
+                if (dir === 'in') {
+                    // 接收方：显示下载按钮
+                    const btn = document.createElement('a');
+                    btn.href = url; btn.download = name; 
+                    btn.innerHTML = '📥'; btn.style.fontSize = '1.5rem'; btn.style.textDecoration = 'none';
+                    mainItem.querySelector('.actions').appendChild(btn);
                 } else {
-                    el.innerHTML = dir === 'in' 
-                        ? `<div style="background:#FFF; padding:8px; border-radius:8px; color:#333; cursor:pointer" onclick="saveFile('${url}','${name}')">📥 Save: ${name}</div>`
-                        : `<div style="opacity:0.8">✅ Sent: ${name}</div>`;
+                    // 发送方
+                    mainItem.querySelector('.actions').innerText = "✅";
                 }
-                ui.chatBody.scrollTop = ui.chatBody.scrollHeight;
+            }
+            
+            // 更新聊天气泡
+            const bubble = document.getElementById(`bubble-${id}`);
+            if (bubble) {
+                if (isImg) {
+                    bubble.innerHTML = `<img src="${url}" style="max-width:200px; border-radius:10px; cursor:zoom-in;" onclick="openLightbox('${url}')">`;
+                } else {
+                    if (dir === 'in') {
+                        bubble.innerHTML = `<div style="background:#FFF; color:#333; padding:10px; border-radius:10px; cursor:pointer;" onclick="downloadFile('${url}', '${name}')">📥 Tap to Save: ${name}</div>`;
+                    } else {
+                        bubble.innerHTML = `<div style="opacity:0.8">✅ Sent: ${name}</div>`;
+                    }
+                }
+                UI.chatMsgs.scrollTop = UI.chatMsgs.scrollHeight;
             }
         }
 
-        // 辅助
-        function calcSpeed(bytes, start) {
-            const sec = (Date.now() - start) / 1000;
-            return sec > 0 ? formatSize(bytes/sec) + "/s" : "";
+        // --- 7. 辅助功能 ---
+        function formatSize(b) {
+            return b > 1024*1024 ? (b/1024/1024).toFixed(1)+" MB" : (b/1024).toFixed(0)+" KB";
         }
-        function formatSize(b) { return b > 1048576 ? (b/1048576).toFixed(1)+" MB" : (b/1024).toFixed(0)+" KB"; }
-        function log(msg) { console.log(msg); document.getElementById('debug-log').innerText = msg; }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(()=>t.style.display='none', 3000);
+        }
+        window.openLightbox = (src) => { 
+            document.getElementById('lb-img').src = src; 
+            document.getElementById('lightbox').style.display = 'flex'; 
+        };
+        window.downloadFile = (url, name) => {
+            const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+        }
+
+        // --- 8. 事件绑定 ---
         
-        // Chat & Audio
-        function toggleChat() { document.getElementById('chat-modal').classList.toggle('visible'); }
-        document.getElementById('chat-input').onkeydown = e => { if(e.key === 'Enter') sendText(); };
+        // 拖拽
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
+            document.body.addEventListener(e, ev => ev.preventDefault()); // 全局禁止默认打开
+        });
+        
+        // 主界面拖拽
+        UI.dropZone.ondragover = () => UI.dropZone.classList.add('drag-over');
+        UI.dropZone.ondragleave = () => UI.dropZone.classList.remove('drag-over');
+        UI.dropZone.ondrop = (e) => {
+            UI.dropZone.classList.remove('drag-over');
+            handleDrop(e, 'main');
+        };
+        
+        // 点击选择文件
+        UI.dropZone.onclick = () => document.getElementById('file-input').click();
+        document.getElementById('file-input').onchange = (e) => enqueueFiles(e.target.files, 'main');
+        
+        // 聊天文件选择
+        document.getElementById('chat-file-input').onchange = (e) => enqueueFiles(e.target.files, 'chat');
+
+        // 聊天消息
         function sendText() {
-            const t = document.getElementById('chat-input').value.trim();
-            if(!t || !conn) return;
-            conn.send({type:'chat', text:t});
-            addChatMsg(t, 'self');
-            document.getElementById('chat-input').value = "";
+            const input = document.getElementById('chat-input');
+            const txt = input.value.trim();
+            if(!txt || !App.conn) return;
+            App.conn.send({ type: 'chat', text: txt });
+            appendChatMsg(txt, 'self');
+            input.value = "";
+            document.getElementById('emoji-panel').style.display = 'none';
         }
-        function addChatMsg(t, type) {
-            const d = document.createElement('div'); d.className = `msg ${type}`; d.innerText = t;
-            ui.chatBody.appendChild(d); ui.chatBody.scrollTop = ui.chatBody.scrollHeight;
+        function appendChatMsg(txt, who) {
+            const div = document.createElement('div');
+            div.className = `msg ${who}`; div.innerText = txt;
+            UI.chatMsgs.appendChild(div);
+            UI.chatMsgs.scrollTop = UI.chatMsgs.scrollHeight;
         }
-        function startScan() { document.getElementById('scan-overlay').style.display='block'; html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({facingMode:"environment"}, {fps:10,qrbox:250}, t=>{ document.getElementById('friend-id').value=t; stopScan(); }, null); }
-        function stopScan() { html5QrCode?.stop(); document.getElementById('scan-overlay').style.display='none'; }
-        window.viewImg = u => { document.getElementById('lb-img').src=u; document.getElementById('lightbox').style.display='flex'; };
-        window.saveFile = (u,n) => { const a=document.createElement('a'); a.href=u; a.download=n; a.click(); };
-        function showToast(t) { const e=document.getElementById('toast'); e.innerText=t; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
-        function unlockAudio() { document.getElementById('silent-audio').play().catch(()=>{}); document.body.onclick=null; }
+        
+        // 表情
+        const emojis = ["😀","😂","😍","😭","👍","🙏","🎉","❤️","🤔","😎","👋","🔥"];
+        const ep = document.getElementById('emoji-panel');
+        emojis.forEach(e => {
+            let s = document.createElement('div'); s.className = 'emoji'; s.innerText = e;
+            s.onclick = () => { document.getElementById('chat-input').value += e; };
+            ep.appendChild(s);
+        });
+        function toggleEmoji() { ep.style.display = ep.style.display==='grid'?'none':'grid'; }
+
+        // 聊天窗口开关
+        function openChat() { UI.chatModal.classList.add('active'); UI.chatBadge.style.display='none'; }
+        function closeChat() { UI.chatModal.classList.remove('active'); }
+
+        // 扫码
+        let html5QrCode;
+        function startScan() {
+            document.getElementById('scanner-layer').style.display = 'block';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+                (decodedText) => {
+                    document.getElementById('target-id').value = decodedText;
+                    stopScan();
+                    showToast("ID Scanned");
+                });
+        }
+        function stopScan() {
+            if(html5QrCode) html5QrCode.stop();
+            document.getElementById('scanner-layer').style.display = 'none';
+        }
+
     </script>
 </body>
 </html>
